@@ -1,0 +1,232 @@
+services:
+  ################################
+  # RabbitMQ (Shared Messaging)
+  ################################
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - '${RABBITMQ_PORT:-5672}:5672'
+      - '${RABBITMQ_MANAGEMENT_PORT:-15672}:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    networks:
+      - microservices_network
+
+  ################################
+  # Identity Database
+  ################################
+  identity-db:
+    image: postgres:16
+    container_name: identity-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - '${POSTGRES_EXTERNAL_PORT:-5432}:5432'
+    volumes:
+      - identity_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices_network
+
+  ################################
+  # Catalog Database
+  ################################
+  catalog-db:
+    image: postgres:16
+    container_name: catalog-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${CATALOG_POSTGRES_DB}
+      POSTGRES_USER: ${CATALOG_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${CATALOG_POSTGRES_PASSWORD}
+    ports:
+      - '${CATALOG_POSTGRES_EXTERNAL_PORT:-5434}:5432'
+    volumes:
+      - catalog_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices_network
+
+  ################################
+  # Payment Database
+  ################################
+  payment-db:
+    image: postgres:16
+    container_name: payment-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${PAYMENT_POSTGRES_DB}
+      POSTGRES_USER: ${PAYMENT_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${PAYMENT_POSTGRES_PASSWORD}
+    ports:
+      - '${PAYMENT_POSTGRES_EXTERNAL_PORT:-5436}:5432'
+    volumes:
+      - payment_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices_network
+
+  ################################
+  # Order Database
+  ################################
+  order-db:
+    image: postgres:16
+    container_name: order-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${ORDER_POSTGRES_DB}
+      POSTGRES_USER: ${ORDER_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${ORDER_POSTGRES_PASSWORD}
+    ports:
+      - '${ORDER_POSTGRES_EXTERNAL_PORT:-5435}:5432'
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices_network
+
+  ################################
+  # API Gateway Service
+  ################################
+
+  api-gateway:
+    ports:
+      - '3000:3000'
+    build:
+      context: ./services/api-gateway
+    container_name: api-gateway
+    restart: always
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+
+      IDENTITY_SERVICE_URL: ${IDENTITY_SERVICE_URL}
+      CATALOG_SERVICE_URL: ${CATALOG_SERVICE_URL}
+      ORDER_SERVICE_URL: ${ORDER_SERVICE_URL}
+      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL}
+
+    depends_on:
+      - identity-service
+      - catalog-service
+      - order-service
+      - payment-service
+
+    networks:
+      - microservices_network
+
+  ################################
+  # Identity Service
+  ################################
+  identity-service:
+    ports:
+      - '3001:3001'
+    build:
+      context: ./services/identity-service
+    image: identity-service
+    container_name: identity-service
+    restart: always
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+    depends_on:
+      - identity-db
+      - rabbitmq
+    networks:
+      - microservices_network
+
+  ################################
+  # Catalog Service
+  ################################
+  catalog-service:
+    ports:
+      - '3002:3002'
+    build:
+      context: ./services/catalog-service
+    image: catalog-service
+    container_name: catalog-service
+    restart: always
+    environment:
+      DB_HOST: ${CATALOG_DB_HOST}
+      DB_PORT: ${CATALOG_DB_PORT}
+      DB_NAME: ${CATALOG_DB_NAME}
+      DB_USER: ${CATALOG_DB_USER}
+      DB_PASSWORD: ${CATALOG_DB_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+    depends_on:
+      - catalog-db
+      - rabbitmq
+    networks:
+      - microservices_network
+
+  ################################
+  # Payment Service
+  ################################
+  payment-service:
+    ports:
+      - '3004:3004'
+    build:
+      context: ./services/payment-service
+    image: payment-service
+    container_name: payment-service
+    restart: always
+    environment:
+      DB_HOST: ${PAYMENT_DB_HOST}
+      DB_PORT: ${PAYMENT_DB_PORT}
+      DB_NAME: ${PAYMENT_DB_NAME}
+      DB_USER: ${PAYMENT_DB_USER}
+      DB_PASSWORD: ${PAYMENT_DB_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+    depends_on:
+      - payment-db
+      - rabbitmq
+    networks:
+      - microservices_network
+
+  ################################
+  # Order Service
+  ################################
+  order-service:
+    ports:
+      - '3003:3003'
+    build:
+      context: ./services/order-service
+    image: order-service
+    container_name: order-service
+    restart: always
+    environment:
+      DB_HOST: ${ORDER_DB_HOST}
+      DB_PORT: ${ORDER_DB_PORT}
+      DB_NAME: ${ORDER_DB_NAME}
+      DB_USER: ${ORDER_DB_USER}
+      DB_PASSWORD: ${ORDER_DB_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+    depends_on:
+      - order-db
+      - rabbitmq
+    networks:
+      - microservices_network
+
+################################
+# Networks
+################################
+networks:
+  microservices_network:
+    driver: bridge
+
+################################
+# Volumes
+################################
+volumes:
+  identity_db_data:
+  catalog_db_data:
+  payment_db_data:
+  order_db_data:
