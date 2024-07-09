@@ -1,15 +1,117 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int       @id @default(autoincrement())
+  email          String    @unique
+  passwordHash   String    @map("password_hash")
+  firstName      String    @map("first_name")
+  lastName       String    @map("last_name")
+  phone          String?
+  status         String
+  emailVerified  Boolean   @default(false) @map("email_verified")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  profile        Profile?
+  refreshTokens  RefreshToken[]
+  loginHistory   LoginHistory[]
+  userRoles      UserRole[]
+
+  @@map("users")
+}
+
+model Profile {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @unique @map("user_id")
+  avatar       String?
+  dateOfBirth  DateTime? @map("date_of_birth")
+  gender       String?
+  address      String?
+  city         String?
+  country      String?
+  postalCode   String?   @map("postal_code")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model RefreshToken {
+  id         Int       @id @default(autoincrement())
+  userId     Int       @map("user_id")
+  token      String    @unique
+  expiresAt  DateTime  @map("expires_at")
+  revoked    Boolean   @default(false)
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model LoginHistory {
+  id         Int       @id @default(autoincrement())
+  userId     Int       @map("user_id")
+  ipAddress  String    @map("ip_address")
+  device     String?
+  browser    String?
+  loginAt    DateTime  @default(now()) @map("login_at")
+  success    Boolean
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("login_history")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId Int @map("user_id")
+  roleId Int @map("role_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       Int @map("role_id")
+  permissionId Int @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
 }
