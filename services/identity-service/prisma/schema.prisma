@@ -8,74 +8,84 @@ datasource db {
 }
 
 model User {
-  id             Int       @id @default(autoincrement())
-  email          String    @unique
-  passwordHash   String    @map("password_hash")
-  firstName      String    @map("first_name")
-  lastName       String    @map("last_name")
-  phone          String?
-  status         String
-  emailVerified  Boolean   @default(false) @map("email_verified")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  id    String @id @default(uuid()) @db.Uuid
+  email String @unique @db.VarChar(255)
 
-  profile        Profile?
-  refreshTokens  RefreshToken[]
-  loginHistory   LoginHistory[]
-  userRoles      UserRole[]
+  passwordHash String  @map("password_hash") @db.VarChar(255)
+  firstName    String  @map("first_name") @db.VarChar(100)
+  lastName     String  @map("last_name") @db.VarChar(100)
+  phone        String? @db.VarChar(20)
+
+  status String @db.VarChar(20)
+
+  emailVerified Boolean  @default(false) @map("email_verified")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  profile       Profile?
+  refreshTokens RefreshToken[]
+  loginHistory  LoginHistory[]
+  userRoles     UserRole[]
 
   @@map("users")
 }
 
 model Profile {
-  id           Int       @id @default(autoincrement())
-  userId       Int       @unique @map("user_id")
-  avatar       String?
-  dateOfBirth  DateTime? @map("date_of_birth")
-  gender       String?
-  address      String?
-  city         String?
-  country      String?
-  postalCode   String?   @map("postal_code")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @unique @map("user_id") @db.Uuid
 
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatar      String?   @db.Text
+  dateOfBirth DateTime? @map("date_of_birth") @db.Date
+  gender      String?   @db.VarChar(20)
+  address     String?   @db.Text
+  city        String?   @db.VarChar(100)
+  country     String?   @db.VarChar(100)
+  postalCode  String?   @map("postal_code") @db.VarChar(20)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("profiles")
 }
 
 model RefreshToken {
-  id         Int       @id @default(autoincrement())
-  userId     Int       @map("user_id")
-  token      String    @unique
-  expiresAt  DateTime  @map("expires_at")
-  revoked    Boolean   @default(false)
-  createdAt  DateTime  @default(now()) @map("created_at")
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique @db.Text
+  expiresAt DateTime @map("expires_at")
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
 
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("refresh_tokens")
 }
 
 model LoginHistory {
-  id         Int       @id @default(autoincrement())
-  userId     Int       @map("user_id")
-  ipAddress  String    @map("ip_address")
-  device     String?
-  browser    String?
-  loginAt    DateTime  @default(now()) @map("login_at")
-  success    Boolean
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id") @db.Uuid
 
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String? @map("ip_address") @db.VarChar(45)
+  device    String? @db.VarChar(100)
+  browser   String? @db.VarChar(100)
 
+  loginAt DateTime @default(now()) @map("login_at")
+  success Boolean
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
   @@map("login_history")
 }
 
 model Role {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique @db.VarChar(50)
+  description String?  @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
 
   userRoles       UserRole[]
@@ -85,9 +95,9 @@ model Role {
 }
 
 model Permission {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String  @unique @db.VarChar(100)
+  description String? @db.Text
 
   rolePermissions RolePermission[]
 
@@ -95,23 +105,25 @@ model Permission {
 }
 
 model UserRole {
-  userId Int @map("user_id")
-  roleId Int @map("role_id")
+  userId String @map("user_id") @db.Uuid
+  roleId String @map("role_id") @db.Uuid
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([userId, roleId])
+  @@index([roleId])
   @@map("user_roles")
 }
 
 model RolePermission {
-  roleId       Int @map("role_id")
-  permissionId Int @map("permission_id")
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
 
   role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
+  @@index([permissionId])
   @@map("role_permissions")
 }
