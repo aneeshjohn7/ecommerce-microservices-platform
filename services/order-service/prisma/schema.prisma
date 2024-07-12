@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Order {
+  id String @id @default(uuid()) @db.Uuid
+
+  userId      String @map("user_id") @db.Uuid
+  orderNumber String @unique @map("order_number") @db.VarChar(100)
+
+  status String @db.VarChar(50)
+
+  subtotal   Decimal @db.Decimal(10, 2)
+  tax        Decimal @db.Decimal(10, 2)
+  shipping   Decimal @db.Decimal(10, 2)
+  discount   Decimal @db.Decimal(10, 2)
+  grandTotal Decimal @map("grand_total") @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  items           OrderItem[]
+  shippingAddress ShippingAddress?
+  statusHistory   OrderStatusHistory[]
+  events          OrderEvent[]
+
+  @@index([userId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id String @id @default(uuid()) @db.Uuid
+
+  orderId   String @map("order_id") @db.Uuid
+  productId String @map("product_id") @db.Uuid
+
+  productName String @map("product_name") @db.VarChar(255)
+
+  price    Decimal @db.Decimal(10, 2)
+  quantity Int
+  subtotal Decimal @db.Decimal(10, 2)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model ShippingAddress {
+  id String @id @default(uuid()) @db.Uuid
+
+  orderId String @unique @map("order_id") @db.Uuid
+
+  name  String @db.VarChar(255)
+  phone String @db.VarChar(20)
+
+  address    String @db.Text
+  city       String @db.VarChar(100)
+  province   String @db.VarChar(100)
+  postalCode String @map("postal_code") @db.VarChar(20)
+  country    String @db.VarChar(100)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("shipping_addresses")
+}
+
+model OrderStatusHistory {
+  id String @id @default(uuid()) @db.Uuid
+
+  orderId String @map("order_id") @db.Uuid
+
+  status  String  @db.VarChar(50)
+  remarks String? @db.Text
+
+  changedAt DateTime @default(now()) @map("changed_at")
+  changedBy String?  @map("changed_by") @db.Uuid
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_status_history")
+}
+
+model OrderEvent {
+  id String @id @default(uuid()) @db.Uuid
+
+  orderId String @map("order_id") @db.Uuid
+
+  eventName String @map("event_name") @db.VarChar(100)
+
+  payload Json
+
+  processed Boolean @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_events")
+}
