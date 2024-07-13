@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model PaymentMethod {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+
+  provider  String @db.VarChar(100)
+  cardLast4 String @map("card_last4") @db.VarChar(4)
+  cardBrand String @map("card_brand") @db.VarChar(50)
+
+  token String @unique @db.Text
+
+  isDefault Boolean @default(false) @map("is_default")
+
+  payments Payment[]
+
+  @@index([userId])
+  @@map("payment_methods")
+}
+
+model Payment {
+  id String @id @default(uuid()) @db.Uuid
+
+  orderId         String @map("order_id") @db.Uuid
+  userId          String @map("user_id") @db.Uuid
+  paymentMethodId String @map("payment_method_id") @db.Uuid
+
+  amount   Decimal @db.Decimal(10, 2)
+  currency String  @db.VarChar(3)
+  status   String  @db.VarChar(50)
+
+  transactionReference String @unique @map("transaction_reference") @db.VarChar(255)
+
+  providerResponse Json? @map("provider_response")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
+
+  refunds Refund[]
+  events  PaymentEvent[]
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([paymentMethodId])
+  @@map("payments")
+}
+
+model Refund {
+  id String @id @default(uuid()) @db.Uuid
+
+  paymentId String @map("payment_id") @db.Uuid
+
+  amount Decimal @db.Decimal(10, 2)
+
+  reason String? @db.Text
+
+  status String @db.VarChar(50)
+
+  providerReference String @unique @map("provider_reference") @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@map("refunds")
+}
+
+model PaymentEvent {
+  id String @id @default(uuid()) @db.Uuid
+
+  paymentId String @map("payment_id") @db.Uuid
+
+  eventType String @map("event_type") @db.VarChar(100)
+
+  payload Json
+
+  processed Boolean @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@map("payment_events")
+}
