@@ -1,31 +1,30 @@
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
-
-  console.log("🌱 Seeding Identity Service...");
+  console.log('🌱 Seeding Identity Service...');
 
   //
   // Roles
   //
 
   const adminRole = await prisma.role.upsert({
-    where: { name: "ADMIN" },
+    where: { name: 'ADMIN' },
     update: {},
     create: {
-      name: "ADMIN",
-      description: "System Administrator",
+      name: 'ADMIN',
+      description: 'System Administrator',
     },
   });
 
   const customerRole = await prisma.role.upsert({
-    where: { name: "CUSTOMER" },
+    where: { name: 'CUSTOMER' },
     update: {},
     create: {
-      name: "CUSTOMER",
-      description: "Customer",
+      name: 'CUSTOMER',
+      description: 'Customer',
     },
   });
 
@@ -34,36 +33,35 @@ async function main() {
   //
 
   const permissions = [
-    "USER_READ",
-    "USER_CREATE",
-    "USER_UPDATE",
-    "USER_DELETE",
+    'USER_READ',
+    'USER_CREATE',
+    'USER_UPDATE',
+    'USER_DELETE',
 
-    "ROLE_READ",
-    "ROLE_CREATE",
-    "ROLE_UPDATE",
-    "ROLE_DELETE",
+    'ROLE_READ',
+    'ROLE_CREATE',
+    'ROLE_UPDATE',
+    'ROLE_DELETE',
 
-    "PRODUCT_READ",
-    "PRODUCT_CREATE",
-    "PRODUCT_UPDATE",
-    "PRODUCT_DELETE",
+    'PRODUCT_READ',
+    'PRODUCT_CREATE',
+    'PRODUCT_UPDATE',
+    'PRODUCT_DELETE',
 
-    "ORDER_READ",
-    "ORDER_CREATE",
-    "ORDER_UPDATE",
-    "ORDER_DELETE",
+    'ORDER_READ',
+    'ORDER_CREATE',
+    'ORDER_UPDATE',
+    'ORDER_DELETE',
 
-    "PAYMENT_READ",
-    "PAYMENT_CREATE",
-    "PAYMENT_UPDATE",
-    "PAYMENT_DELETE",
+    'PAYMENT_READ',
+    'PAYMENT_CREATE',
+    'PAYMENT_UPDATE',
+    'PAYMENT_DELETE',
   ];
 
   const createdPermissions = [];
 
   for (const permission of permissions) {
-
     const p = await prisma.permission.upsert({
       where: {
         name: permission,
@@ -82,9 +80,7 @@ async function main() {
   //
 
   for (const permission of createdPermissions) {
-
     await prisma.rolePermission.upsert({
-
       where: {
         roleId_permissionId: {
           roleId: adminRole.id,
@@ -105,27 +101,25 @@ async function main() {
   // Admin User
   //
 
-  const passwordHash = await bcrypt.hash("Admin@123", 12);
+  const passwordHash = await bcrypt.hash('Admin@123', 12);
 
   const admin = await prisma.user.upsert({
-
     where: {
-      email: "admin@example.com",
+      email: 'admin@example.com',
     },
 
     update: {},
 
     create: {
-
-      email: "admin@example.com",
+      email: 'admin@example.com',
 
       passwordHash,
 
-      isActive: true,
+      firstName: 'A',
 
-      emailVerified: true,
+      lastName: 'J',
 
-      roleId: adminRole.id,
+      status: 'ACTIVE',
     },
   });
 
@@ -133,8 +127,7 @@ async function main() {
   // Profile
   //
 
-  await prisma.userProfile.upsert({
-
+  await prisma.profile.upsert({
     where: {
       userId: admin.id,
     },
@@ -142,16 +135,15 @@ async function main() {
     update: {},
 
     create: {
-
       userId: admin.id,
 
-      firstName: "System",
+      city: 'New York',
 
-      lastName: "Administrator",
+      country: 'USA',
     },
   });
 
-  console.log("✅ Identity Service Seed Complete");
+  console.log('✅ Identity Service Seed Complete');
 }
 
 main()

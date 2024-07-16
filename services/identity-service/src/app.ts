@@ -1,12 +1,12 @@
 import express from "express";
-import authRoutes from "./modules/auth/auth.routes";
+import authRoutes from "./routes/auth.routes";
 
 const app = express();
 
 app.use(express.json());
 
 app.get("/health", (req, res) => {
-  res.json({ status: "identity-service ok" });
+  res.json({ status: "identity-service oks" });
 });
 
 app.use("/auth", authRoutes);

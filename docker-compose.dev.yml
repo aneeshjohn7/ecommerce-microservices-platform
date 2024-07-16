@@ -123,8 +123,9 @@ services:
       - '3001:3001'
     build:
       context: ./services/identity-service
+      dockerfile: Dockerfile.dev
     volumes:
-      - ./identity-service:/app
+      - ./services/identity-service:/app
       - /app/node_modules  
     image: identity-service
     container_name: identity-service
