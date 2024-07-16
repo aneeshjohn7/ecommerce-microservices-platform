@@ -2,11 +2,35 @@ import { PrismaClient, User, Prisma } from '@prisma/client';
 
 export class UserRepository {
   constructor(private prisma: PrismaClient) {}
-
+  /**
+   * Create a new user in the database.
+   * @param data - The user data to create.
+   * @returns The created user.
+   * @throws Error if a user with the same email already exists.
+   * Omits the passwordHash field from the returned user object.
+   */
   async create(data: Prisma.UserCreateInput): Promise<User> {
-    return this.prisma.user.create({
-      data,
-    });
+    try {
+      return await this.prisma.user.create({
+        data,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        const target = error.meta?.target as string[] | undefined;
+        if (error.code === 'P2002' && target?.includes('email')) {
+          throw new Error('User with this email already exists');
+        }
+      }
+      throw error;
+    }
   }
   /**
    * Find a user by their ID.

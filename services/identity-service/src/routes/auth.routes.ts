@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
+import { registerSchema } from '../schemas/auth.schema';
+import { validate } from '../middleware/validate.middleware';
 const router = Router();
 
-// Create route for registration
-router.post('/register', (req, res) => {
-  // create an instance of AuthController and call the register method
+router.post('/register', validate(registerSchema), (req, res) => {
   AuthController.register(req, res);
 });
 
