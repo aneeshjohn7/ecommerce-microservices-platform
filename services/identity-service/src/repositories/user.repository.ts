@@ -7,20 +7,13 @@ export class UserRepository {
    * @param data - The user data to create.
    * @returns The created user.
    * @throws Error if a user with the same email already exists.
-   * Omits the passwordHash field from the returned user object.
+   * Omits the passwordHash field from the returned user object using prisma ommit.   
    */
-  async create(data: Prisma.UserCreateInput): Promise<User> {
+  async create(data: Prisma.UserCreateInput): Promise<Omit<User, 'passwordHash'>> {
     try {
       return await this.prisma.user.create({
         data,
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+        omit: { passwordHash: true }
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
