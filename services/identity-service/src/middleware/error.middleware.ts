@@ -1,4 +1,5 @@
-import { ErrorRequestHandler } from "express";
+import { ErrorRequestHandler } from 'express';
+import { AppError } from '../errors/AppError';
 
 /**
  * Global error handler middleware.
@@ -8,7 +9,9 @@ import { ErrorRequestHandler } from "express";
  * @param next - The next middleware function.
  */
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
-  res.status(statusCode).json({ message });
+  if (err instanceof AppError) {
+    res.status(err.statusCode).json({ message: err.message });
+  } else {
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
 };

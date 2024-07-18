@@ -1,2 +1,5 @@
-import dotenv from "dotenv";
-dotenv.config();
+export const config = {
+  bcrypt: {
+    saltRounds: Number(process.env.BCRYPT_SALT_ROUNDS ?? 12),
+  },
+};

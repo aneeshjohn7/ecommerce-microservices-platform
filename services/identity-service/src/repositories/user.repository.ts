@@ -1,4 +1,5 @@
 import { PrismaClient, User, Prisma } from '@prisma/client';
+import { ConflictError } from '../errors/ConflictError';
 
 export class UserRepository {
   constructor(private prisma: PrismaClient) {}
@@ -19,7 +20,7 @@ export class UserRepository {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         const target = error.meta?.target as string[] | undefined;
         if (error.code === 'P2002' && target?.includes('email')) {
-          throw new Error('User with this email already exists');
+          throw new ConflictError('User with this email already exists');
         }
       }
       throw error;
