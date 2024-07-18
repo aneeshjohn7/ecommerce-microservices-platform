@@ -1,29 +1,30 @@
-import { UserRepository } from "../repositories/user.repository";
-import bcrypt from "bcrypt";
-//import prisma client instance from database.ts
-import prisma from "../config/database";
+import { UserRepository } from '../repositories/user.repository';
+import bcrypt from 'bcrypt';
+import { z } from 'zod';
+import { registerSchema } from '../schemas/auth.schema';
+import prisma from '../config/database';
+
+type RegisterDto = z.infer<typeof registerSchema>;
+
 export class AuthService {
-  static async register(userData: any) {
-    // creare an instance of UserRepository
+  static async register(userData: RegisterDto) {
     const userRepository = new UserRepository(prisma);
-    // Here you would typically validate the userData and hash the password
+
     const { firstName, lastName, email, password } = userData;
 
-    // Hash the password using bcrypt
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // Create the user in the database using the given fields 
     const user = await userRepository.create({
       email,
       firstName,
       lastName,
       phone: null,
       passwordHash,
-      status: "active",
+      status: 'active',
       emailVerified: false,
     });
 
     return user;
   }
-}   
+}
