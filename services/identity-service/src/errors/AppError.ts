@@ -5,9 +5,11 @@
  */
 export class AppError extends Error {
   public readonly statusCode: number;
+  public errors: object[] = [];
 
-  constructor(message: string, statusCode: number) {
+  constructor(message: string, statusCode: number, errors: object[] = []) {
     super(message);
     this.statusCode = statusCode;
+    this.errors = errors;
   }
 }

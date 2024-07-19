@@ -1,4 +1,3 @@
-// create validateError.ts file by exntending the AppError class and setting the status code to 422 (Unprocessable Entity)
 import { AppError } from "./AppError";
 
 /* jsdoc
@@ -7,7 +6,7 @@ import { AppError } from "./AppError";
  * @module errors/ValidationError
  */
 export class ValidationError extends AppError {
-  constructor(message: string) {
-    super(message, 422); // 422 is the HTTP status code for unprocessable entity
+  constructor(message: string, errors: object[] = []) {
+    super(message, 422, errors); // 422 is the HTTP status code for unprocessable entity
   }
 }   
