@@ -13,18 +13,17 @@ export class AuthService {
   constructor(private userRepository: UserRepository) {}
 
   async register(userData: RegisterDto) {
-    const { firstName, lastName, email, password } = userData;
+    const { firstName, lastName, email, password, phone } = userData;
 
     const saltRounds = config.bcrypt.saltRounds;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    const normalizedEmail = email.trim().toLowerCase();
 
     const user = await this.userRepository.create({
-      email: normalizedEmail,
+      email,
       firstName,
       lastName,
-      phone: null,
+      phone,
       passwordHash,
       status: UserStatus.ACTIVE,
       emailVerified: false,
