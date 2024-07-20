@@ -3,6 +3,7 @@ import { config } from '../config/env';
 import { authOpenApi } from './auth.openapi';
 import { userSchema } from './schemas/user.schema';
 import { registerRequestSchema } from './schemas/register-request.schema';
+import { errorSchemas } from './schemas/errors.schema';
 
 const options = {
   definition: {
@@ -16,6 +17,7 @@ const options = {
       schemas: {
         ...registerRequestSchema,
         ...userSchema,
+        ...errorSchemas,
       },
     },
     paths: {

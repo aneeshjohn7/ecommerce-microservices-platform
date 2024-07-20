@@ -1,3 +1,4 @@
+import { errorResponses } from "./errors.openapi"
 export const authOpenApi = {
     "/api/v1/auth/register": {
         post: {
@@ -23,9 +24,9 @@ export const authOpenApi = {
                         }
                     }
                 },
-                "400": {
-                    description: "Invalid input"
-                }
+                "400": errorResponses.validationError,
+                "409": errorResponses.conflictError,
+                "500": errorResponses.internalServerError
             }
         }
     }
