@@ -33,6 +33,24 @@ services:
       - microservices_network
 
   ################################
+  # Identity Test Database
+  ################################
+  identity-test-db:
+    image: postgres:16
+    container_name: identity-test-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_TEST_DB}
+      POSTGRES_USER: ${POSTGRES_TEST_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD}
+    ports:
+      - '${POSTGRES_TEST_EXTERNAL_PORT:-5437}:5432'
+    volumes:
+      - identity_test_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices_network
+
+  ################################
   # Catalog Database
   ################################
   catalog-db:
@@ -234,3 +252,4 @@ volumes:
   catalog_db_data:
   payment_db_data:
   order_db_data:
+  identity_test_db_data:

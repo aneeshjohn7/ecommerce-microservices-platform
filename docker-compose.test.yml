@@ -1,0 +1,20 @@
+  ################################
+  # Identity Test Database
+  ################################
+  identity-test-db:
+    image: postgres:16
+    container_name: identity-test-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - '${POSTGRES_EXTERNAL_PORT:-5432}:5432'
+    volumes:
+      - identity_test_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices_network
+
+  volumes:
+    identity_test_db_data:
