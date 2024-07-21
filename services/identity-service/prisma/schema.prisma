@@ -24,8 +24,11 @@ model User {
 
   status UserStatus @default(ACTIVE)
 
-  emailVerified Boolean  @default(false) @map("email_verified")
-  createdAt     DateTime @default(now()) @map("created_at")
+  emailVerified Boolean @default(false) @map("email_verified")
+
+  emailVerificationToken     String?
+  emailVerificationExpiresAt DateTime?
+  createdAt                  DateTime  @default(now()) @map("created_at")
 
   updatedAt DateTime @updatedAt @map("updated_at")
 
