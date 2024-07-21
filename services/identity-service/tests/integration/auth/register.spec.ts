@@ -1,7 +1,14 @@
 import request from 'supertest';
 import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
-import { afterAll, describe, it, expect, beforeEach } from '@jest/globals';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from '@jest/globals';
 
 import app from '../../../src/app';
 
@@ -71,7 +78,4 @@ describe('POST /api/v1/auth/register', () => {
     expect(passwordMatches).toBe(true);
   });
 });
-function beforeAll(arg0: () => Promise<void>) {
-    throw new Error('Function not implemented.');
-}
 
