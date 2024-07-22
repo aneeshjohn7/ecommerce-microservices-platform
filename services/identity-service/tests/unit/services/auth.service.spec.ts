@@ -54,6 +54,8 @@ describe('AuthService.register', () => {
       phone: registerData.phone,
       status: UserStatus.ACTIVE,
       emailVerified: false,
+      emailVerificationToken: null,
+      emailVerificationExpiresAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -84,3 +86,4 @@ describe('AuthService.register', () => {
     expect(result).toEqual(createdUser);
   });
 });
+

@@ -8,13 +8,19 @@ export class UserRepository {
    * @param data - The user data to create.
    * @returns The created user.
    * @throws Error if a user with the same email already exists.
-   * Omits the passwordHash field from the returned user object using prisma ommit.   
+   * Omits the passwordHash, emailVerificationToken, and emailVerificationExpiresAt fields from the returned user object using prisma omit.
    */
-  async create(data: Prisma.UserCreateInput): Promise<Omit<User, 'passwordHash'>> {
+  async create(
+    data: Prisma.UserCreateInput,
+  ): Promise<Omit<User, 'passwordHash' | 'emailVerificationToken' | 'emailVerificationExpiresAt'>> {
     try {
       return await this.prisma.user.create({
         data,
-        omit: { passwordHash: true }
+        omit: {
+          passwordHash: true,
+          emailVerificationToken: true,
+          emailVerificationExpiresAt: true,
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -91,6 +97,29 @@ export class UserRepository {
   async list(): Promise<User[]> {
     return this.prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
+    });
+  }
+  /**
+   * Find a user by their email verification token.
+   * @param token - The email verification token.
+   * @returns The user if found, otherwise null.
+   */
+  async findByEmailVerificationToken(token: string): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: { emailVerificationToken: token },
+    });
+  }
+
+  /**
+   * Update a user's email verification status.
+   * @param id - The ID of the user.
+   * @param emailVerified - The new email verification status.
+   * @returns The updated user.
+   */
+  async updateEmailVerificationStatus(id: string, emailVerified: boolean): Promise<User> {
+    return this.prisma.user.update({
+      where: { id },
+      data: { emailVerified, emailVerificationToken: null, emailVerificationExpiresAt: null },
     });
   }
 }
