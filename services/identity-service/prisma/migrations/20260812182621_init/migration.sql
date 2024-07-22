@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'SUSPENDED');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
@@ -6,8 +9,10 @@ CREATE TABLE "users" (
     "first_name" VARCHAR(100) NOT NULL,
     "last_name" VARCHAR(100) NOT NULL,
     "phone" VARCHAR(20),
-    "status" VARCHAR(20) NOT NULL,
+    "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
     "email_verified" BOOLEAN NOT NULL DEFAULT false,
+    "email_verification_token" TEXT,
+    "email_verification_expires_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
