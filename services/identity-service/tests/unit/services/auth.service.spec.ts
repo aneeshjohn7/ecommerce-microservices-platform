@@ -3,6 +3,7 @@ import { UserRepository } from '../../../src/repositories/user.repository';
 import bcrypt from 'bcrypt';
 import { UserStatus } from '@prisma/client';
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { de } from 'zod/v4/locales';
 
 // Mock bcrypt
 jest.mock('bcrypt', () => ({
@@ -72,7 +73,7 @@ describe('AuthService.register', () => {
     );
 
     // Assert: repository was called correctly
-    expect(userRepository.create).toHaveBeenCalledWith({
+    expect(userRepository.create).toHaveBeenCalledWith(expect.objectContaining({
       email: registerData.email,
       firstName: registerData.firstName,
       lastName: registerData.lastName,
@@ -80,10 +81,116 @@ describe('AuthService.register', () => {
       passwordHash: hashedPassword,
       status: UserStatus.ACTIVE,
       emailVerified: false,
-    });
+      emailVerificationToken: expect.any(String),
+      emailVerificationExpiresAt: expect.any(Date),
+    }));
 
     // Assert: service returns repository result
     expect(result).toEqual(createdUser);
   });
 });
+
+describe('AuthService.verifyEmail', () => {
+  type UserRepositoryMock = {
+    findByEmailVerificationToken: jest.MockedFunction<
+      UserRepository['findByEmailVerificationToken']
+    >;
+
+    updateEmailVerificationStatus: jest.MockedFunction<
+      UserRepository['updateEmailVerificationStatus']
+    >;
+  };
+  let userRepository: UserRepositoryMock;
+  let authService: AuthService;
+
+  beforeEach(() => {
+    userRepository = {
+      findByEmailVerificationToken: jest.fn(),
+      updateEmailVerificationStatus: jest.fn(),
+    };
+
+    authService = new AuthService(userRepository as unknown as UserRepository);
+  });
+
+    it('should verify email with a valid token', async () => {
+      // Arrange
+      const user = {
+        id: 'user-123',
+        emailVerificationExpiresAt: new Date(Date.now() + 60_000),
+      };
+
+      userRepository.findByEmailVerificationToken.mockResolvedValue(
+        user as any,
+      );
+
+      // Act
+      await authService.verifyEmail('valid-token');
+
+      // Assert
+      expect(userRepository.findByEmailVerificationToken).toHaveBeenCalledWith(
+        'valid-token',
+      );
+
+      expect(userRepository.updateEmailVerificationStatus).toHaveBeenCalledWith(
+        'user-123',
+        true,
+      );
+    });
+
+    it('should throw an error when token is invalid', async () => {
+      // Arrange
+      userRepository.findByEmailVerificationToken.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(authService.verifyEmail('invalid-token')).rejects.toThrow(
+        'Invalid token',
+      );
+
+      expect(
+        userRepository.updateEmailVerificationStatus,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('should throw an error when token has expired', async () => {
+      // Arrange
+      const user = {
+        id: 'user-123',
+        emailVerificationExpiresAt: new Date(Date.now() - 60_000),
+      };
+
+      userRepository.findByEmailVerificationToken.mockResolvedValue(
+        user as any,
+      );
+
+      // Act & Assert
+      await expect(authService.verifyEmail('expired-token')).rejects.toThrow(
+        'Token has expired',
+      );
+
+      expect(
+        userRepository.updateEmailVerificationStatus,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('should verify email when expiration date is null', async () => {
+      // Arrange
+      const user = {
+        id: 'user-123',
+        emailVerificationExpiresAt: null,
+      };
+
+      userRepository.findByEmailVerificationToken.mockResolvedValue(
+        user as any,
+      );
+
+      // Act
+      await authService.verifyEmail('valid-token');
+
+      // Assert
+      expect(userRepository.updateEmailVerificationStatus).toHaveBeenCalledWith(
+        'user-123',
+        true,
+      );
+    });
+  });
 
