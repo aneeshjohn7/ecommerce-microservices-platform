@@ -6,6 +6,7 @@ import { UserStatus } from "@prisma/client";
 import { config } from '../config/env';
 import crypto from 'crypto';
 import { AppError } from '../errors/AppError';
+import { publishUserRegistered } from '../infrastructure/rabbitmq/publisher';
 
 
 type RegisterDto = z.infer<typeof registerSchema>;
@@ -20,7 +21,7 @@ export class AuthService {
     const saltRounds = config.bcrypt.saltRounds;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-
+    const verificationToken = crypto.randomBytes(32).toString('hex');
     const user = await this.userRepository.create({ 
       email,
       firstName,
@@ -29,10 +30,16 @@ export class AuthService {
       passwordHash,
       status: UserStatus.ACTIVE,
       emailVerified: false,
-      emailVerificationToken: crypto.randomBytes(32).toString('hex'),
+      emailVerificationToken: verificationToken,
       emailVerificationExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
     });
 
+    await publishUserRegistered({
+      userId: user.id,
+      email,
+      verificationToken,
+    });
+    
     return user;
   }
 
