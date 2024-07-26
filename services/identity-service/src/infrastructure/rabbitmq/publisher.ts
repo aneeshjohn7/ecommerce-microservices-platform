@@ -16,7 +16,7 @@ export async function publishUserRegistered(data: {
     RoutingKeys.USER_REGISTERED,
     Buffer.from(JSON.stringify(data)),
     {
-      persistent: true,
+      persistent: true, 
     }
   );
 }

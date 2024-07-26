@@ -16,7 +16,7 @@ export const authMiddleware = (
 
   try {
     const decoded = jwt.verify(token.split(' ')[1], jwtConfig.secret);
-    (req as any).user = decoded;
+    (req as any).user = decoded; 
     next();
   } catch {
     throw new InvalidTokenError('Invalid token');
