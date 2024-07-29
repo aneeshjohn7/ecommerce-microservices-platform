@@ -5,6 +5,7 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
+    restart: always
     ports:
       - '${RABBITMQ_PORT:-5672}:5672'
       - '${RABBITMQ_MANAGEMENT_PORT:-15672}:15672'
@@ -136,7 +137,7 @@ services:
   ################################
   # Identity Service
   ################################
-  identity-service: 
+  identity-service:
     ports:
       - '3001:3001'
     build:
@@ -144,7 +145,7 @@ services:
       dockerfile: Dockerfile.dev
     volumes:
       - ./services/identity-service:/app
-      - /app/node_modules  
+      - /app/node_modules
     image: identity-service
     container_name: identity-service
     restart: always

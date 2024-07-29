@@ -11,8 +11,8 @@ export async function publishUserRegistered(event: {
   const channel = getRabbitMQChannel();
 
   const message = Buffer.from(JSON.stringify(event));
-
-  channel.publish(
+  console.log("About to publish UserRegistered event");
+  const published = channel.publish(
     Exchanges.USER,
     RoutingKeys.USER_REGISTERED,
     message,
@@ -22,5 +22,5 @@ export async function publishUserRegistered(event: {
     }
   );
 
-  console.log("UserRegistered event published");
+  console.log("UserRegistered event published", published);
 }
