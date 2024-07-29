@@ -162,6 +162,21 @@ services:
     networks:
       - microservices_network
 
+  email-worker:
+  build:
+    context: ./services/email-worker
+    dockerfile: Dockerfile.dev
+
+  volumes:
+    - ./services/email-worker:/app
+    - /app/node_modules
+
+  environment:
+    NODE_ENV: ${NODE_ENV}
+
+  depends_on:
+    - rabbitmq    
+
   ################################
   # Catalog Service
   ################################

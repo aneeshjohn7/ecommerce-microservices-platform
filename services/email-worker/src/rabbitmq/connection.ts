@@ -1,18 +1,24 @@
-import amqp from "amqplib";
-import process = require("process");
+import amqp, { Channel, ChannelModel } from "amqplib";
 
-let channel: amqp.Channel;
+let connection: ChannelModel;
+let channel: Channel;
 
 export async function connectRabbitMQ() {
-  const connection = await amqp.connect(
-    process.env.RABBITMQ_URL!
+  connection = await amqp.connect(
+    process.env.RABBITMQ_URL || "amqp://rabbitmq:5672"
   );
 
   channel = await connection.createChannel();
 
+  console.log("Connected to RabbitMQ");
+
   return channel;
 }
 
-export function getChannel() {
+export function getRabbitMQChannel() {
+  if (!channel) {
+    throw new Error("RabbitMQ channel has not been initialized");
+  }
+
   return channel;
 }

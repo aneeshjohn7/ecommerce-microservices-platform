@@ -1,10 +1,7 @@
 import { getRabbitMQChannel } from "./connection";
 import { Exchanges } from "./exchanges";
 import { Queues } from "./queues";
-
-export const RoutingKeys = {
-  USER_REGISTERED: "user.registered",
-};
+import { RoutingKeys } from "./routingKeys";
 
 export async function setupBindings() {
   const channel = getRabbitMQChannel();

@@ -1,25 +1,29 @@
-import { getChannel } from "./connection";
-import { sendVerificationEmail } from "../services/email.service";
+import { getRabbitMQChannel } from "./connection";
+import { Queues } from "./queues";
 
 export async function startConsumer() {
-  const channel = getChannel();
+  const channel = getRabbitMQChannel();
 
-  await channel.consume("email.queue", async (msg) => {
-    if (!msg) return;
+  await channel.consume(Queues.EMAIL, async (message) => {
+    if (!message) {
+      return;
+    }
 
     try {
-      const data = JSON.parse(msg.content.toString());
+      const event = JSON.parse(message.content.toString());
 
-      await sendVerificationEmail(
-        data.email,
-        data.verificationToken
-      );
+      console.log("UserRegistered event received:", event);
 
-      channel.ack(msg);
+      // Send verification email here
+      // await sendVerificationEmail(event);
+
+      channel.ack(message);
     } catch (error) {
-      console.error(error);
+      console.error("Error processing message:", error);
 
-      channel.nack(msg, false, true);
+      channel.nack(message, false, false);
     }
   });
+
+  console.log(`Email worker consuming from ${Queues.EMAIL}`);
 }
