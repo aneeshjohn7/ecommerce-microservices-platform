@@ -1,11 +1,12 @@
 import amqp, { Channel, ChannelModel } from "amqplib";
+import { config } from "../../config/env";
 
 let connection: ChannelModel;
 let channel: Channel;
 
 export async function connectRabbitMQ() {
   connection = await amqp.connect(
-    process.env.RABBITMQ_URL || "amqp://rabbitmq:5672"
+    config.rabbitmq.url || "amqp://rabbitmq:5672"
   );
 
   channel = await connection.createChannel();

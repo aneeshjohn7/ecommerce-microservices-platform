@@ -172,12 +172,15 @@ services:
     volumes:
       - ./services/email-worker:/app
       - /app/node_modules
-
+    restart: always
     environment:
-      NODE_ENV: ${NODE_ENV}
-
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_URL: ${RABBITMQ_URL}
     depends_on:
-      - rabbitmq    
+      - rabbitmq
+    networks:
+      - microservices_network
 
   ################################
   # Catalog Service
