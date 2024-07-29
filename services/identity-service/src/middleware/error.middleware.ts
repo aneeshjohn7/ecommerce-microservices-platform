@@ -12,7 +12,7 @@ import { config } from '../config/env';
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   console.error('ERROR:', err);
   if (err instanceof AppError) {
-    res
+    return res
       .status(err.statusCode)
       .json({ message: err.message, errors: err.errors });
   }

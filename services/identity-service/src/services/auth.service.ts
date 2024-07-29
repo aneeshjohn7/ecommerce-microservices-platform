@@ -38,6 +38,7 @@ export class AuthService {
       userId: user.id,
       email,
       verificationToken,
+      publishedAt: new Date().toISOString(),
     });
     
     return user;

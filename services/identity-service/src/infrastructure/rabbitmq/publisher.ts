@@ -6,6 +6,7 @@ export async function publishUserRegistered(event: {
   userId: string;
   email: string;
   verificationToken: string;
+  publishedAt: string;
 }) {
   const channel = getRabbitMQChannel();
 
