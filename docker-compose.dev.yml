@@ -169,6 +169,8 @@ services:
     build:
       context: ./services/email-worker
       dockerfile: Dockerfile.dev
+    env_file:
+    - ./services/email-worker/.env
 
     volumes:
       - ./services/email-worker:/app

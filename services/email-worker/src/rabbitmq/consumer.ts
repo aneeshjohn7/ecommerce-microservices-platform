@@ -1,5 +1,6 @@
 import { getRabbitMQChannel } from './connection';
 import { Queues } from './queues';
+import { sendVerificationEmail } from '../services/email.service';
 
 export async function startConsumer() {
   console.log('1. startConsumer() called');
@@ -21,8 +22,7 @@ export async function startConsumer() {
 
       console.log('UserRegistered event received:', event);
 
-      // Send verification email here
-      // await sendVerificationEmail(event);
+      await sendVerificationEmail(event.email, event.verificationToken);
 
       channel.ack(message);
     } catch (error) {
