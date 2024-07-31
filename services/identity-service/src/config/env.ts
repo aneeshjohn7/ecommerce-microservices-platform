@@ -7,6 +7,7 @@ export const config = {
     nodeEnv: process.env.NODE_ENV ?? 'development',
   },
   rabbitmq: {
+    enable: process.env.ENABLE_RABBITMQ === 'true',
     url: process.env.RABBITMQ_URL ?? 'amqp://rabbitmq:5672', 
   },
 };

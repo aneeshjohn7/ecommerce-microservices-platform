@@ -6,8 +6,11 @@ import { setupExchanges } from './infrastructure/rabbitmq/exchanges';
 const PORT = process.env.PORT || 3001;
 
 async function startServer() {
-  await connectRabbitMQ();
-  await setupExchanges();
+
+  if (process.env.ENABLE_RABBITMQ === 'true') {
+    await connectRabbitMQ();
+    await setupExchanges();
+  }
 
   app.listen(PORT, () => {
     console.log(`Identity service running on port ${PORT}`);

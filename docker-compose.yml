@@ -18,6 +18,23 @@ services:
     networks:
       - microservices_network_production
 
+  ################################
+  # RabbitMQ (Shared Messaging)
+  ################################
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-prod
+    restart: unless-stopped
+    ports:
+      - '${RABBITMQ_PORT:-5672}:5672'
+      - '${RABBITMQ_MANAGEMENT_PORT:-15672}:15672'
+  environment:
+    RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+    RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}      
+        
+    networks:
+      - microservices_network_production
+
 ################################
 # Networks
 ################################
