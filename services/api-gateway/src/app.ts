@@ -11,12 +11,11 @@ const app = express();
 
 app.use(cors());
 app.use(helmet());
-app.use(express.json());
 app.use(morgan("dev"));
 
-app.use("/auth", authRoutes);
-app.use("/products", productRoutes);
-app.use("/orders", orderRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/orders", orderRoutes);
 
 app.get("/health", (req, res) => {
   res.json({ status: "OK", service: "API Gateway" });
