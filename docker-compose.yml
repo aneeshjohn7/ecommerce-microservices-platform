@@ -19,6 +19,23 @@ services:
       - microservices_network_production
 
   ################################
+  # Identity Service
+  ################################
+  identity-service:
+    ports:
+      - '4001:3001'
+    build:
+      context: ./services/identity-service
+      dockerfile: Dockerfile
+    image: identity-service:prod
+    container_name: identity-service-prod
+    restart: unless-stopped
+    env_file:
+      - ./services/identity-service/.env
+    networks:
+      - microservices_network_production      
+
+  ################################
   # RabbitMQ (Shared Messaging)
   ################################
   rabbitmq:
@@ -28,9 +45,9 @@ services:
     ports:
       - '${RABBITMQ_PORT:-5672}:5672'
       - '${RABBITMQ_MANAGEMENT_PORT:-15672}:15672'
-  environment:
-    RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-    RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}      
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}      
         
     networks:
       - microservices_network_production

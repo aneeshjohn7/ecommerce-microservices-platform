@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -6,142 +6,121 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding Identity Service...');
 
-  //
-  // Roles
-  //
-
-  const adminRole = await prisma.role.upsert({
-    where: { name: 'ADMIN' },
-    update: {},
-    create: {
-      name: 'ADMIN',
-      description: 'System Administrator',
+  const users = [
+    {
+      email: 'admin@example.com',
+      password: 'Admin@123',
+      firstName: 'A',
+      lastName: 'J',
+      status: 'ACTIVE',
+      email_verified: true,
     },
-  });
-
-  const customerRole = await prisma.role.upsert({
-    where: { name: 'CUSTOMER' },
-    update: {},
-    create: {
-      name: 'CUSTOMER',
-      description: 'Customer',
-    },
-  });
-
-  //
-  // Permissions
-  //
-
-  const permissions = [
-    'USER_READ',
-    'USER_CREATE',
-    'USER_UPDATE',
-    'USER_DELETE',
-
-    'ROLE_READ',
-    'ROLE_CREATE',
-    'ROLE_UPDATE',
-    'ROLE_DELETE',
-
-    'PRODUCT_READ',
-    'PRODUCT_CREATE',
-    'PRODUCT_UPDATE',
-    'PRODUCT_DELETE',
-
-    'ORDER_READ',
-    'ORDER_CREATE',
-    'ORDER_UPDATE',
-    'ORDER_DELETE',
-
-    'PAYMENT_READ',
-    'PAYMENT_CREATE',
-    'PAYMENT_UPDATE',
-    'PAYMENT_DELETE',
   ];
 
-  const createdPermissions = [];
+  for (const user of users) {
+    const passwordHash = await bcrypt.hash(user.password, 12);
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: {},
+      create: {
+        email: user.email,
+        passwordHash,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        status: UserStatus.ACTIVE,
+        emailVerified: true,
+      },
+    });
+  }
+
+  const roles = [
+    { name: 'ADMIN' },
+    { name: 'USER' },
+  ];
+
+  for (const role of roles) {
+    await prisma.role.upsert({
+      where: { name: role.name },
+      update: {},
+      create: {
+        name: role.name,
+      },
+    });
+  } 
+
+  // create seed for user_roles table
+  const adminUser = await prisma.user.findUnique({
+    where: { email: 'admin@example.com' },
+  });
+
+  if (adminUser) {
+    const adminRole = await prisma.role.findUnique({
+      where: { name: 'ADMIN' },
+    });
+
+    if (adminRole) {
+      await prisma.userRole.upsert({
+        where: {
+          userId_roleId: {
+            userId: adminUser.id,
+            roleId: adminRole.id,
+          },
+        },
+        update: {},
+        create: {
+          userId: adminUser.id,
+          roleId: adminRole.id,
+        },
+      });
+    }
+  }
+
+  // creat seed for permissions table
+  const permissions = [
+    { name: 'CREATE_USER' },
+    { name: 'READ_USER' },
+    { name: 'UPDATE_USER' },
+    { name: 'DELETE_USER' },
+  ];
 
   for (const permission of permissions) {
-    const p = await prisma.permission.upsert({
-      where: {
-        name: permission,
-      },
+    await prisma.permission.upsert({
+      where: { name: permission.name },
       update: {},
       create: {
-        name: permission,
-      },
-    });
-
-    createdPermissions.push(p);
-  }
-
-  //
-  // Assign all permissions to ADMIN
-  //
-
-  for (const permission of createdPermissions) {
-    await prisma.rolePermission.upsert({
-      where: {
-        roleId_permissionId: {
-          roleId: adminRole.id,
-          permissionId: permission.id,
-        },
-      },
-
-      update: {},
-
-      create: {
-        roleId: adminRole.id,
-        permissionId: permission.id,
+        name: permission.name,
       },
     });
   }
 
-  //
-  // Admin User
-  //
-
-  const passwordHash = await bcrypt.hash('Admin@123', 12);
-
-  const admin = await prisma.user.upsert({
-    where: {
-      email: 'admin@example.com',
-    },
-
-    update: {},
-
-    create: {
-      email: 'admin@example.com',
-
-      passwordHash,
-
-      firstName: 'A',
-
-      lastName: 'J',
-
-      status: 'ACTIVE',
-    },
+  // create seed for role_permissions table
+  const adminRole = await prisma.role.findUnique({
+    where: { name: 'ADMIN' },
   });
 
-  //
-  // Profile
-  //
+  if (adminRole) {
+    for (const permission of permissions) {
+      const perm = await prisma.permission.findUnique({
+        where: { name: permission.name },
+      });
 
-  await prisma.profile.upsert({
-    where: {
-      userId: admin.id,
-    },
-
-    update: {},
-
-    create: {
-      userId: admin.id,
-
-      city: 'New York',
-
-      country: 'USA',
-    },
-  });
+      if (perm) {
+        await prisma.rolePermission.upsert({
+          where: {
+            roleId_permissionId: {
+              roleId: adminRole.id,
+              permissionId: perm.id,
+            },
+          },
+          update: {},
+          create: {
+            roleId: adminRole.id,
+            permissionId: perm.id,
+          },
+        });
+      }
+    }
+  }
 
   console.log('✅ Identity Service Seed Complete');
 }

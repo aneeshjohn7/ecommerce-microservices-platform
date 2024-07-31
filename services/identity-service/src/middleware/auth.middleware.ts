@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import { config } from '../config/env';
 import jwt from 'jsonwebtoken';
-import { jwtConfig } from '../config/jwt';
 import { InvalidTokenError } from '../errors/InvalidTokenError';
 
 export const authMiddleware = (
@@ -15,7 +15,7 @@ export const authMiddleware = (
   }
 
   try {
-    const decoded = jwt.verify(token.split(' ')[1], jwtConfig.secret);
+    const decoded = jwt.verify(token.split(' ')[1], config.jwtConfig.accessTokenSecret);
     (req as any).user = decoded; 
     next();
   } catch {

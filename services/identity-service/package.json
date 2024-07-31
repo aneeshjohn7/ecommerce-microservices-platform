@@ -6,7 +6,10 @@
     "dev": "nodemon --watch src --exec ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "db:test:migrate": "dotenv -e .env.test -- prisma migrate deploy"
+    "db:dev:migrate": "dotenv -e .env.dev -- prisma migrate dev",
+    "db:dev:seed": "dotenv -e .env.dev -- prisma db seed",
+    "db:test:migrate": "dotenv -e .env.test -- prisma migrate deploy",
+    "db:prod:migrate": "dotenv -e .env -- prisma migrate deploy"
   },
   "keywords": [],
   "author": "",

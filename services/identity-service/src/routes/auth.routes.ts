@@ -1,12 +1,13 @@
 import { Router } from 'express';
-import { register, verifyEmail } from '../controllers/auth.controller';
-import { registerSchema } from '../schemas/auth.schema';
+import { authController } from '../container';
+import { loginSchema, registerSchema } from '../schemas/auth.schema';
 import { validate } from '../middleware/validate.middleware';
-import { verify } from 'node:crypto';
 const router = Router();
 
-router.post('/register', validate(registerSchema), register);
+router.post('/register', validate(registerSchema), authController.register);
 
-router.get('/verify-email', verifyEmail);
+router.post('/login', validate(loginSchema), authController.login);
+
+router.get('/verify-email', authController.verifyEmail);
 
 export default router;
