@@ -4,32 +4,94 @@ services:
   ################################
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq
-    restart: always
+    container_name: rabbitmq-dev
+    restart: unless-stopped
     ports:
       - '${RABBITMQ_PORT:-5672}:5672'
       - '${RABBITMQ_MANAGEMENT_PORT:-15672}:15672'
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    env_file:
+      - .env.dev
     networks:
       - microservices_network
+      
+  ################################
+  # API Gateway Service
+  ################################
+
+  api-gateway:
+    ports:
+      - '${HOST_PORT:-3000}:3000'
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./services/api-gateway:/app
+      - /app/node_modules
+    image: api-gateway:dev
+    container_name: api-gateway-dev
+    restart: unless-stopped
+    env_file:
+      - ./services/api-gateway/.env.dev
+    networks:
+      - microservices_network
+
+  ################################
+  # Identity Service
+  ################################
+  identity-service:
+    ports:
+      - '${HOST_PORT:-3001}:3001'
+    build:
+      context: ./services/identity-service
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./services/identity-service:/app
+      - /app/node_modules
+    image: identity-service:dev
+    container_name: identity-service-dev
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
+    env_file:
+      - ./services/identity-service/.env.dev
+    networks:
+      - microservices_network      
+    
 
   ################################
   # Identity Database
   ################################
   identity-db:
     image: postgres:16
-    container_name: identity-db
-    restart: always
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    container_name: identity-db-dev
+    restart: unless-stopped
+    env_file:
+      - ./services/identity-service/.env
     ports:
       - '${POSTGRES_EXTERNAL_PORT:-5432}:5432'
     volumes:
       - identity_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices_network
+  ################################
+  # Email Worker Service
+  ################################
+
+  email-worker:
+    image: email-worker:dev
+    container_name: email-worker-dev
+    build:
+      context: ./services/email-worker
+      dockerfile: Dockerfile.dev
+    env_file:
+      - ./services/email-worker/.env.dev
+
+    volumes:
+      - ./services/email-worker:/app
+      - /app/node_modules
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
     networks:
       - microservices_network
 
@@ -105,81 +167,7 @@ services:
     networks:
       - microservices_network
 
-  ################################
-  # API Gateway Service
-  ################################
 
-  api-gateway:
-    ports:
-      - '3000:3000'
-    build:
-      context: ./services/api-gateway
-      dockerfile: Dockerfile.dev
-    volumes:
-    - ./services/api-gateway:/app
-    - /app/node_modules    
-    image: api-gateway 
-    container_name: api-gateway
-    restart: always
-    env_file:
-    - ./services/api-gateway/.env
-
-    depends_on:
-      - identity-service
-
-    networks:
-      - microservices_network
-
-  ################################
-  # Identity Service
-  ################################
-  identity-service:
-    ports:
-      - '3001:3001'
-    build:
-      context: ./services/identity-service
-      dockerfile: Dockerfile.dev
-    volumes:
-      - ./services/identity-service:/app
-      - /app/node_modules
-    image: identity-service
-    container_name: identity-service
-    restart: always
-    environment:
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      RABBITMQ_HOST: ${RABBITMQ_HOST}
-      RABBITMQ_PORT: ${RABBITMQ_PORT}
-    depends_on:
-      - identity-db
-      - rabbitmq
-    networks:
-      - microservices_network
-
-  email-worker:
-    image: email-worker:dev
-    container_name: email-worker
-    build:
-      context: ./services/email-worker
-      dockerfile: Dockerfile.dev
-    env_file:
-    - ./services/email-worker/.env
-
-    volumes:
-      - ./services/email-worker:/app
-      - /app/node_modules
-    restart: always
-    environment:
-      RABBITMQ_HOST: ${RABBITMQ_HOST}
-      RABBITMQ_PORT: ${RABBITMQ_PORT}
-      RABBITMQ_URL: ${RABBITMQ_URL}
-    depends_on:
-      - rabbitmq
-    networks:
-      - microservices_network
 
   ################################
   # Catalog Service
