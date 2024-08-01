@@ -1,3 +1,4 @@
+name: ecommerce-dev
 services:
   ################################
   # RabbitMQ (Shared Messaging)
@@ -50,8 +51,8 @@ services:
     image: identity-service:dev
     container_name: identity-service-dev
     restart: unless-stopped
-    depends_on:
-      - rabbitmq
+    environment:
+      NODE_ENV: dev
     env_file:
       - ./services/identity-service/.env.dev
     networks:
@@ -66,13 +67,14 @@ services:
     container_name: identity-db-dev
     restart: unless-stopped
     env_file:
-      - ./services/identity-service/.env
+      - ./services/identity-service/.env.dev
     ports:
       - '${POSTGRES_EXTERNAL_PORT:-5432}:5432'
     volumes:
       - identity_db_data:/var/lib/postgresql/data
     networks:
       - microservices_network
+      
   ################################
   # Email Worker Service
   ################################
@@ -96,20 +98,22 @@ services:
       - microservices_network
 
   ################################
-  # Identity Test Database
+  # Catalog Service
   ################################
-  identity-test-db:
-    image: postgres:16
-    container_name: identity-test-db
-    restart: always
-    environment:
-      POSTGRES_DB: ${POSTGRES_TEST_DB}
-      POSTGRES_USER: ${POSTGRES_TEST_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD}
+  catalog-service:
     ports:
-      - '${POSTGRES_TEST_EXTERNAL_PORT:-5437}:5432'
+      - '${HOST_PORT:-3002}:3002'
+    build:
+      context: ./services/catalog-service
+      dockerfile: Dockerfile.dev
+    image: catalog-service:dev  
+    container_name: catalog-service-dev
+    restart: unless-stopped
+    env_file:
+      - ./services/catalog-service/.env.dev
     volumes:
-      - identity_test_db_data:/var/lib/postgresql/data
+      - ./services/catalog-service:/app
+      - /app/node_modules
     networks:
       - microservices_network
 
@@ -118,131 +122,16 @@ services:
   ################################
   catalog-db:
     image: postgres:16
-    container_name: catalog-db
-    restart: always
-    environment:
-      POSTGRES_DB: ${CATALOG_POSTGRES_DB}
-      POSTGRES_USER: ${CATALOG_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${CATALOG_POSTGRES_PASSWORD}
+    container_name: catalog-db-dev
+    restart: unless-stopped
+    env_file:
+      - ./services/catalog-service/.env.dev
     ports:
-      - '${CATALOG_POSTGRES_EXTERNAL_PORT:-5434}:5432'
+      - '${POSTGRES_EXTERNAL_PORT:-5434}:5432'
     volumes:
       - catalog_db_data:/var/lib/postgresql/data
     networks:
-      - microservices_network
-
-  ################################
-  # Payment Database
-  ################################
-  payment-db:
-    image: postgres:16
-    container_name: payment-db
-    restart: always
-    environment:
-      POSTGRES_DB: ${PAYMENT_POSTGRES_DB}
-      POSTGRES_USER: ${PAYMENT_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${PAYMENT_POSTGRES_PASSWORD}
-    ports:
-      - '${PAYMENT_POSTGRES_EXTERNAL_PORT:-5436}:5432'
-    volumes:
-      - payment_db_data:/var/lib/postgresql/data
-    networks:
-      - microservices_network
-
-  ################################
-  # Order Database
-  ################################
-  order-db:
-    image: postgres:16
-    container_name: order-db
-    restart: always
-    environment:
-      POSTGRES_DB: ${ORDER_POSTGRES_DB}
-      POSTGRES_USER: ${ORDER_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${ORDER_POSTGRES_PASSWORD}
-    ports:
-      - '${ORDER_POSTGRES_EXTERNAL_PORT:-5435}:5432'
-    volumes:
-      - order_db_data:/var/lib/postgresql/data
-    networks:
-      - microservices_network
-
-
-
-  ################################
-  # Catalog Service
-  ################################
-  catalog-service:
-    ports:
-      - '3002:3002'
-    build:
-      context: ./services/catalog-service
-    image: catalog-service
-    container_name: catalog-service
-    restart: always
-    environment:
-      DB_HOST: ${CATALOG_DB_HOST}
-      DB_PORT: ${CATALOG_DB_PORT}
-      DB_NAME: ${CATALOG_DB_NAME}
-      DB_USER: ${CATALOG_DB_USER}
-      DB_PASSWORD: ${CATALOG_DB_PASSWORD}
-      RABBITMQ_HOST: ${RABBITMQ_HOST}
-      RABBITMQ_PORT: ${RABBITMQ_PORT}
-    depends_on:
-      - catalog-db
-      - rabbitmq
-    networks:
-      - microservices_network
-
-  ################################
-  # Payment Service
-  ################################
-  payment-service:
-    ports:
-      - '3004:3004'
-    build:
-      context: ./services/payment-service
-    image: payment-service
-    container_name: payment-service
-    restart: always
-    environment:
-      DB_HOST: ${PAYMENT_DB_HOST}
-      DB_PORT: ${PAYMENT_DB_PORT}
-      DB_NAME: ${PAYMENT_DB_NAME}
-      DB_USER: ${PAYMENT_DB_USER}
-      DB_PASSWORD: ${PAYMENT_DB_PASSWORD}
-      RABBITMQ_HOST: ${RABBITMQ_HOST}
-      RABBITMQ_PORT: ${RABBITMQ_PORT}
-    depends_on:
-      - payment-db
-      - rabbitmq
-    networks:
-      - microservices_network
-
-  ################################
-  # Order Service
-  ################################
-  order-service:
-    ports:
-      - '3003:3003'
-    build:
-      context: ./services/order-service
-    image: order-service
-    container_name: order-service
-    restart: always
-    environment:
-      DB_HOST: ${ORDER_DB_HOST}
-      DB_PORT: ${ORDER_DB_PORT}
-      DB_NAME: ${ORDER_DB_NAME}
-      DB_USER: ${ORDER_DB_USER}
-      DB_PASSWORD: ${ORDER_DB_PASSWORD}
-      RABBITMQ_HOST: ${RABBITMQ_HOST}
-      RABBITMQ_PORT: ${RABBITMQ_PORT}
-    depends_on:
-      - order-db
-      - rabbitmq
-    networks:
-      - microservices_network
+      - microservices_network      
 
 ################################
 # Networks
