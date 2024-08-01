@@ -74,7 +74,7 @@ services:
       - identity_db_data:/var/lib/postgresql/data
     networks:
       - microservices_network
-      
+
   ################################
   # Email Worker Service
   ################################
@@ -131,7 +131,43 @@ services:
     volumes:
       - catalog_db_data:/var/lib/postgresql/data
     networks:
-      - microservices_network      
+      - microservices_network   
+
+  ################################
+  # Order Service
+  ################################
+  order-service:
+    ports:
+      - '${HOST_PORT:-3003}:3003'
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile.dev
+    image: order-service:dev  
+    container_name: order-service-dev
+    restart: unless-stopped
+    env_file:
+      - ./services/order-service/.env.dev
+    volumes:
+      - ./services/order-service:/app
+      - /app/node_modules
+    networks:
+      - microservices_network   
+
+  ################################
+  # Order Database
+  ################################
+  order-db:
+    image: postgres:16
+    container_name: order-db-dev
+    restart: unless-stopped
+    env_file:
+      - ./services/order-service/.env.dev
+    ports:
+      - '${POSTGRES_EXTERNAL_PORT:-5435}:5432'
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices_network               
 
 ################################
 # Networks
