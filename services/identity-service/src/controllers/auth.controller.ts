@@ -1,15 +1,9 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { asyncHandler } from '../utils/asyncHandler';
-import { UserRepository } from '../repositories/user.repository';
-import prisma from '../config/database';
 import { RegisterDto } from '../dto/register.dto';
 import { AppError } from '../errors/AppError';
 import { LoginDto } from '../dto/login.dto';
-import { RoleRepository } from '../repositories/role.repository';
-import { UserRoleRepository } from '../repositories/userRole.repository';
-import { RefreshTokenRepository } from '../repositories/refreshToken.repository';
-
 
 
 export class AuthController {
