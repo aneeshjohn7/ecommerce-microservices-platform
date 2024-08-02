@@ -10,4 +10,8 @@ export class OrderController {
         
         res.status(201).json({ message: 'Order created successfully' });
     });
+
+    order = asyncHandler(async (req: Request, res: Response) => {
+        res.status(200).json({ message: req.headers.authorization });
+    });
 }

@@ -7,6 +7,8 @@ export function validate(schema: z.ZodType) {
     const result = schema.safeParse(req.body);
 
     if (!result.success) {
+      console.log('Request body:', req.body);
+      console.log('Validation errors:', result.error.issues);
       throw new ValidationError('Validation failed', result.error.issues);
     }
 
