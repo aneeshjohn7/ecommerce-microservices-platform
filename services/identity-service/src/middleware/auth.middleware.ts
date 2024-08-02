@@ -3,7 +3,7 @@ import { config } from '../config/env';
 import jwt from 'jsonwebtoken';
 import { InvalidTokenError } from '../errors/InvalidTokenError';
 
-export const authMiddleware = (
+export const authenticate = (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -22,3 +22,6 @@ export const authMiddleware = (
     throw new InvalidTokenError('Invalid token');
   }
 };
+
+
+

@@ -77,10 +77,10 @@ async function main() {
 
   // creat seed for permissions table
   const permissions = [
-    { name: 'CREATE_USER' },
-    { name: 'READ_USER' },
-    { name: 'UPDATE_USER' },
-    { name: 'DELETE_USER' },
+    { name: 'user:create' },
+    { name: 'user:read' },
+    { name: 'user:update' },
+    { name: 'user:delete' },
   ];
 
   for (const permission of permissions) {

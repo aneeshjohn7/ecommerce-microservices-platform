@@ -5,7 +5,6 @@ import { RegisterDto } from '../dto/register.dto';
 import { AppError } from '../errors/AppError';
 import { LoginDto } from '../dto/login.dto';
 
-
 export class AuthController {
   constructor(private authService: AuthService) {}
 

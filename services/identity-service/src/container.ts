@@ -7,6 +7,8 @@ import { RefreshTokenRepository } from './repositories/refreshToken.repository';
 import { AuthService } from './services/auth.service';
 import { AuthController } from './controllers/auth.controller';
 import prisma from './config/database';
+import { ProfileService } from './services/profile.service';
+import { ProfileController } from './controllers/profile.controller';
 
 
 // Repositories
@@ -23,5 +25,13 @@ const authService = new AuthService(
   refreshTokenRepository
 );
 
+const profileService = new ProfileService(
+  userRepository,
+  roleRepository,
+  userRoleRepository
+);
+
+
 // Controllers
 export const authController = new AuthController(authService);
+export const profileController = new ProfileController(profileService);

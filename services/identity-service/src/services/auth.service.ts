@@ -92,6 +92,7 @@ export class AuthService {
     }
     const roles = await this.userRoleRepository.findRolesByUserId(user.id);
     const roleNames = roles.map((role) => role.role.name);
+
     const accessToken = generateAccessToken({ userId: user.id, roles: roleNames });
     const refreshToken = generateRefreshToken({ userId: user.id, roles: roleNames });
     // save refresh token in database
