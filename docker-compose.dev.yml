@@ -167,7 +167,44 @@ services:
     volumes:
       - order_db_data:/var/lib/postgresql/data
     networks:
-      - microservices_network    
+      - microservices_network   
+
+  ################################
+  # Payment Service
+  ################################
+  payment-service:
+    ports:
+      - '${HOST_PORT:-3004}:3004'
+    build:
+      context: ./services/payment-service
+      dockerfile: Dockerfile.dev
+    image: payment-service:dev  
+    container_name: payment-service-dev
+    restart: unless-stopped
+    env_file:
+      - ./services/payment-service/.env.dev
+    volumes:
+      - ./services/payment-service:/app
+      - /app/node_modules
+    networks:
+      - microservices_network        
+
+  ################################
+  # Payment Database
+  ################################
+  payment-db:
+    image: postgres:16
+    container_name: payment-db-dev
+    restart: unless-stopped
+    env_file:
+      - ./services/payment-service/.env.dev
+    ports:
+      - '${POSTGRES_EXTERNAL_PORT:-5436}:5432'
+    volumes:
+      - payment_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices_network   
+
 
   ################################
   # Test Database for testing purposes

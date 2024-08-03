@@ -6,6 +6,10 @@ export const config = {
     apiUrl: process.env.API_URL ?? 'http://localhost:3003',
     nodeEnv: process.env.NODE_ENV ?? 'dev',
   },
+  rabbitmq: {
+    enable: process.env.ENABLE_RABBITMQ === 'true',
+    url: process.env.RABBITMQ_URL ?? 'amqp://rabbitmq:5672',
+  },
   services: {
     identityServiceUrl:
       process.env.IDENTITY_SERVICE_URL ?? 'http://identity-service:3001',

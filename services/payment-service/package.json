@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev src/server.ts",
+    "dev": "nodemon --watch src --exec ts-node src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "db:dev:migrate": "dotenv -e .env.dev -- prisma migrate dev",
+    "db:dev:seed": "dotenv -e .env.dev -- prisma db seed",
+    "db:test:migrate": "dotenv -e .env.test -- prisma migrate deploy",
+    "db:prod:migrate": "dotenv -e .env -- prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
@@ -13,13 +17,18 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "amqplib": "^2.2.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.8",
     "@types/express": "^5.0.6",
     "@types/node": "^26.0.0",
+    "dotenv-cli": "^11.0.0",
+    "nodemon": "^3.1.14",
     "prisma": "^6.19.3",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.23.1",
     "typescript": "^6.0.3"
