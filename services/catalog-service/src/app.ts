@@ -1,6 +1,6 @@
 import express from "express";
-import catalogRoutes from "./modules/catalog/catalog.routes";
-
+import catalogRoutes from "./routes/catalog.routes";
+import { errorHandler } from './middleware/error.middleware';
 
 const app = express();
 
@@ -11,7 +11,8 @@ app.get("/health", (req, res) => {
   res.json({ status: "catalog-service ok" });
 });
 
-app.use("/catalog", catalogRoutes);
+app.use("/api/v1/products", catalogRoutes);
 
+app.use(errorHandler);
 
 export default app;
