@@ -1,10 +1,8 @@
-/** Data Transfer Object for an order item */
 export interface OrderItemDto {
   productId: string;
   quantity: number;
 }
 
-/** Data Transfer Object for a shipping address */
 export interface ShippingAddressDto {
   name: string;
   phone: string;
@@ -14,9 +12,9 @@ export interface ShippingAddressDto {
   postalCode: string;
   country: string;
 }
-/**
- * Data Transfer Object for an order.
- */
+
 export interface OrderDto {
+  customerId: string;
   items: OrderItemDto[];
+  shippingAddress: ShippingAddressDto;
 }

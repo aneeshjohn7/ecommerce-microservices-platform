@@ -2,6 +2,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import { config } from '../config/env';
 import { authOpenApi } from './auth.openapi';
 import { orderSchema } from './schemas/order.schema';
+import { orderRequestSchema } from './schemas/order-request.schema';
 import { errorSchemas } from './schemas/errors.schema';
 
 const options = {
@@ -15,6 +16,7 @@ const options = {
     components: {
       schemas: {
         ...orderSchema,
+        ...orderRequestSchema,
         ...errorSchemas,
       },
     },
