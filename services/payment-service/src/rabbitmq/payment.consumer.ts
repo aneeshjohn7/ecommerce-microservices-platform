@@ -1,6 +1,9 @@
 import { getRabbitMQChannel } from './connection';
+import { PaymentService } from '../services/payment.service';
+import { PaymentRepository } from '../repositories/payment.repository';
 import { Queues } from './queues';
-import { processMockPayment } from '../services/payment.service';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
 export async function startConsumer() {
   console.log('1. startConsumer() called');
@@ -20,11 +23,20 @@ export async function startConsumer() {
     try {
       const event = JSON.parse(message.content.toString());
 
-      console.log('Order created event received:', event);
+      console.log('order created event received:', event);
 
-      const paymentResult = await processMockPayment(event);
+      const paymentService = new PaymentService(new PaymentRepository(prisma));
+      await paymentService.createPayment({
+        orderId: event.orderId,
+        userId: event.userId,
+        amount: event.grandTotal,
+        currency: 'CAD',
+      });
 
-      console.log('Mock payment result:', paymentResult);
+      await paymentService.processPayment({
+        orderId: event.orderId,
+      });
+      
 
       channel.ack(message);
     } catch (error) {
@@ -34,5 +46,5 @@ export async function startConsumer() {
     }
   });
 
-  console.log(`Payment service consuming from ${Queues.ORDER}`);
+  console.log(`Payment worker consuming from ${Queues.ORDER}`);
 }

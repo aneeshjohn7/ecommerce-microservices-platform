@@ -2,6 +2,7 @@ import { OrderDto } from '../dto/order.dto';
 import { AppError } from '../errors/AppError';
 import { OrderRepository } from '../repositories/order.repository';
 import { CatalogService } from '../services/catalog.service';
+import { randomUUID } from 'crypto';
 import {
   calculateTax,
   calculateShipping,
@@ -48,9 +49,10 @@ export class OrderService {
     const discount = 0;
     const grandTotal = subtotal + tax + shipping - discount;
     const orderNumber = generateOrderNumber();
-
+    const orderId = randomUUID();
     // 3. Persist the order atomically
     return this.orderRepository.createOrder({
+      id: orderId,
       userId,
       orderNumber,
       status: 'PENDING',
@@ -91,7 +93,8 @@ export class OrderService {
       events: {
         create: {
           eventName: 'ORDER_CREATED',
-          payload: JSON.stringify({
+          payload: {
+            orderId,
             orderNumber,
             userId,
             items: orderItems,
@@ -100,7 +103,7 @@ export class OrderService {
             shipping,
             discount,
             grandTotal,
-          }),
+          },
           createdAt: new Date(),
         },
       },

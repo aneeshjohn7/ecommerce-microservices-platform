@@ -1,7 +1,7 @@
 import app from "./app";
 import { connectRabbitMQ } from "./rabbitmq/connection";
 import { setupQueues } from "./rabbitmq/queues";
-import { startConsumer } from "./rabbitmq/consumer";
+import { startConsumer } from "./rabbitmq/payment.consumer";
 import { setupBindings } from "./rabbitmq/bindings";
 
 const PORT = process.env.PORT || 3004;

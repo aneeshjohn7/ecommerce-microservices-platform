@@ -36,19 +36,19 @@ model Payment {
 
   orderId         String @map("order_id") @db.Uuid
   userId          String @map("user_id") @db.Uuid
-  paymentMethodId String @map("payment_method_id") @db.Uuid
+  paymentMethodId String? @map("payment_method_id") @db.Uuid
 
   amount   Decimal @db.Decimal(10, 2)
   currency String  @db.VarChar(3)
   status   String  @db.VarChar(50)
 
-  transactionReference String @unique @map("transaction_reference") @db.VarChar(255)
+  transactionReference String? @unique @map("transaction_reference") @db.VarChar(255)
 
   providerResponse Json? @map("provider_response")
 
   createdAt DateTime @default(now()) @map("created_at")
 
-  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
 
   refunds Refund[]
   events  PaymentEvent[]
